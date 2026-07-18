@@ -1,9 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 app = FastAPI(title="FlyRank Task Manager API")
+
+class TaskCreate(BaseModel):
+    title: Optional[str] = None
 
 class Task(BaseModel):
     id: int
@@ -41,3 +44,13 @@ def read_task(task_id: int):
         if task.id == task_id:
             return task
     return JSONResponse(status_code=404, content={"error": f"Task {task_id} not found"})
+
+@app.post("/tasks", response_model=Task, status_code=201)
+def create_task(task_data: TaskCreate):
+    if not task_data.title or task_data.title.strip() == "":
+        return JSONResponse(status_code=400, content={"error": "Title is required and cannot be empty"})
+    
+    next_id = max([t.id for t in tasks_db]) + 1 if tasks_db else 1
+    new_task = Task(id=next_id, title=task_data.title, done=False)
+    tasks_db.append(new_task)
+    return new_task
