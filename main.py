@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional
@@ -7,6 +7,10 @@ app = FastAPI(title="FlyRank Task Manager API")
 
 class TaskCreate(BaseModel):
     title: Optional[str] = None
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    done: Optional[bool] = None
 
 class Task(BaseModel):
     id: int
@@ -54,3 +58,29 @@ def create_task(task_data: TaskCreate):
     new_task = Task(id=next_id, title=task_data.title, done=False)
     tasks_db.append(new_task)
     return new_task
+
+@app.put("/tasks/{task_id}", response_model=Task)
+def update_task(task_id: int, task_data: TaskUpdate):
+    if task_data.title is None and task_data.done is None:
+        return JSONResponse(status_code=400, content={"error": "Body cannot be empty"})
+    
+    if task_data.title is not None and task_data.title.strip() == "":
+        return JSONResponse(status_code=400, content={"error": "Title cannot be empty"})
+
+    for task in tasks_db:
+        if task.id == task_id:
+            if task_data.title is not None:
+                task.title = task_data.title
+            if task_data.done is not None:
+                task.done = task_data.done
+            return task
+    
+    return JSONResponse(status_code=404, content={"error": f"Task {task_id} not found"})
+
+@app.delete("/tasks/{task_id}", status_code=204)
+def delete_task(task_id: int):
+    for index, task in enumerate(tasks_db):
+        if task.id == task_id:
+            tasks_db.pop(index)
+            return Response(status_code=204)
+    return JSONResponse(status_code=404, content={"error": f"Task {task_id} not found"})
