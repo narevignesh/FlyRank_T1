@@ -26,6 +26,7 @@ tasks_db: List[Task] = [
 
 @app.get("/")
 def read_root():
+    """Get basic API metadata and description."""
     return {
         "name": "Task API",
         "version": "1.0",
@@ -34,16 +35,19 @@ def read_root():
 
 @app.get("/health")
 def read_health():
+    """Get server health status."""
     return {
         "status": "ok"
     }
 
 @app.get("/tasks", response_model=List[Task])
 def read_tasks():
+    """Retrieve the complete list of tasks."""
     return tasks_db
 
 @app.get("/tasks/{task_id}", response_model=Task)
 def read_task(task_id: int):
+    """Retrieve details of a single task by ID."""
     for task in tasks_db:
         if task.id == task_id:
             return task
@@ -51,6 +55,7 @@ def read_task(task_id: int):
 
 @app.post("/tasks", response_model=Task, status_code=201)
 def create_task(task_data: TaskCreate):
+    """Create a new task with validation."""
     if not task_data.title or task_data.title.strip() == "":
         return JSONResponse(status_code=400, content={"error": "Title is required and cannot be empty"})
     
@@ -61,6 +66,7 @@ def create_task(task_data: TaskCreate):
 
 @app.put("/tasks/{task_id}", response_model=Task)
 def update_task(task_id: int, task_data: TaskUpdate):
+    """Update an existing task's title and/or done status."""
     if task_data.title is None and task_data.done is None:
         return JSONResponse(status_code=400, content={"error": "Body cannot be empty"})
     
@@ -79,6 +85,7 @@ def update_task(task_id: int, task_data: TaskUpdate):
 
 @app.delete("/tasks/{task_id}", status_code=204)
 def delete_task(task_id: int):
+    """Remove a task from the list by ID."""
     for index, task in enumerate(tasks_db):
         if task.id == task_id:
             tasks_db.pop(index)
