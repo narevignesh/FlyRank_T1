@@ -100,5 +100,4 @@ FastAPI provides built-in interactive Swagger documentation. Start the server an
 
 You can use the "Try it out" button directly on the web page to execute operations against all endpoints.
 
-![Swagger UI](https://raw.githubusercontent.com/narevignesh/FlyRank_T1/main/swagger_screenshot.png)
-*(Note: Replace this image with your actual Swagger UI screenshot after running locally)*
+
